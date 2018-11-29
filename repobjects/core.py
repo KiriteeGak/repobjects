@@ -46,9 +46,6 @@ def proximity_based_choice(distance_matrix=None, points=None):
 
         probs = row_ / row_.sum()
 
-        if probs.max() - probs.min() <= 10e-3:
-            exit_ = True
-
         index_ = np.random.choice(array_size, 1, p=probs)[0]
 
         while index_ in indices_selected:
