@@ -60,5 +60,36 @@ def proximity_based_choice(distance_matrix=None, points=None):
     return indices_selected
 
 
-def maximum_proximity():
-    pass
+def maximum_proximity(distance_matrix):
+    array_size = len(distance_matrix)
+    intra_cluster_distance = distance_matrix.sum()/(array_size * (array_size-1))
+
+    indices_selected = list()
+
+    # random selection of starting index
+    from random import randint
+    start_index = randint(0, array_size - 1)
+    indices_selected.append(start_index)
+
+    exit_ = False
+
+    while not exit_:
+        row_ = distance_matrix[indices_selected].sum(axis=0)/len(indices_selected)
+
+        index_ = np.where(row_ == row_.max())[0][0]
+
+        while index_ in indices_selected:
+            row_[index_] = 0
+            index_ = np.where(row_ == row_.max())[0][0]
+            if row_.max() < intra_cluster_distance:
+                exit_ = True
+
+        if not exit_:
+            indices_selected.append(index_)
+
+    return indices_selected
+
+
+# arr = np.array([[3, 3], [-3, 3], [-3, -3], [3, -3], [1, 1], [-1, 1], [1, -1], [-1, -1]])
+# sample_distance_matrix = cdist(arr, arr)
+# print(maximum_proximity(sample_distance_matrix))
