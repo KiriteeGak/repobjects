@@ -13,24 +13,25 @@ def proximity_based_choice(distance_matrix=None, points=None):
     :param points:
     :return:
     """
-    if not distance_matrix and not points:
+    if not distance_matrix.any() and not points:
         raise ValueError("Either distance_matrix or points are to be passed. Both cannot be None.")
 
-    if distance_matrix and isinstance(distance_matrix, list):
+    if distance_matrix.any() and isinstance(distance_matrix, list):
         distance_matrix = np.array(distance_matrix)
 
     if points and isinstance(points, list):
         points = np.array(points)
 
-    if not distance_matrix and points:
+    if not distance_matrix.any() and points:
         distance_matrix = cdist(points, points)
 
-    if distance_matrix:
+    if distance_matrix.any():
         assert np.allclose(distance_matrix, distance_matrix.T, atol=1e-8), "Distance matrix should be symmetric." \
                                                                            " Found to be non-symmetric at tolerance" \
                                                                            " level 1e-8."
 
     array_size = len(distance_matrix)
+    intra_cluster_distance = distance_matrix.sum() / (array_size * (array_size - 1))
     indices_selected = list()
 
     # random selection of starting index
@@ -41,9 +42,9 @@ def proximity_based_choice(distance_matrix=None, points=None):
     exit_ = False
 
     while not exit_:
-        row_ = distance_matrix[indices_selected]
+        row_ = distance_matrix[indices_selected].sum(axis=0)/len(indices_selected)
 
-        probs = row_.sum(axis=0) / row_.sum()
+        probs = row_ / row_.sum()
 
         if probs.max() - probs.min() <= 10e-3:
             exit_ = True
@@ -54,6 +55,9 @@ def proximity_based_choice(distance_matrix=None, points=None):
             probs[index_] = 0
             probs /= probs.sum()
             index_ = np.random.choice(array_size, 1, p=probs)[0]
+
+            if row_[index_].max() < intra_cluster_distance:
+                exit_ = True
 
         indices_selected.append(index_)
 
@@ -92,4 +96,4 @@ def maximum_proximity(distance_matrix):
 
 # arr = np.array([[3, 3], [-3, 3], [-3, -3], [3, -3], [1, 1], [-1, 1], [1, -1], [-1, -1]])
 # sample_distance_matrix = cdist(arr, arr)
-# print(maximum_proximity(sample_distance_matrix))
+# print(proximity_based_choice(sample_distance_matrix))

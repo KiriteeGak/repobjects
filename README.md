@@ -1,2 +1,2 @@
 # representational-objects-clusters
-This repository is solely is to find objects that represent clusters
+This repository is for finding objects that can represent clusters
